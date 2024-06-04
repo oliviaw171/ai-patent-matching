@@ -49,7 +49,7 @@ po/*~
 rsconnect/
 
 # Ignore everything in the output_files directory
-output_files/*
+# output_files/*
 
 # Except this file
-!output_files/DISCERN_patent_database_1980_2015_final1.dta
+# !output_files/DISCERN_patent_database_1980_2015_final1.dta
