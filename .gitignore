@@ -53,3 +53,16 @@ rsconnect/
 
 # Except this file
 # !output_files/DISCERN_patent_database_1980_2015_final1.dta
+
+# Ignore everything in the compustat-patent directory
+compustat-patent/*
+
+# Except the specific files
+!compustat-patent/staticTranche1.csv
+!compustat-patent/staticTranche2.csv
+!compustat-patent/staticTranche3.csv
+!compustat-patent/staticTranche4.csv
+!compustat-patent/staticTranche5.csv
+!compustat-patent/staticTranche6.csv
+!compustat-patent/staticTranche7.csv
+!compustat-patent/staticTranche8.csv
