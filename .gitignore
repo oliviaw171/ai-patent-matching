@@ -21,14 +21,14 @@
 # RStudio files
 .Rproj.user/
 
-# produced vignettes
+# Produced vignettes
 vignettes/*.html
 vignettes/*.pdf
 
 # OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
 .httr-oauth
 
-# knitr and R markdown default cache directories
+# Knitr and R markdown default cache directories
 *_cache/
 /cache/
 
@@ -42,11 +42,14 @@ vignettes/*.pdf
 # pkgdown site
 docs/
 
-# translation temp files
+# Translation temp files
 po/*~
 
 # RStudio Connect folder
 rsconnect/
 
-# Output files directory
-output_files/
+# Ignore everything in the output_files directory
+output_files/*
+
+# Except this file
+!output_files/DISCERN_patent_database_1980_2015_final1.dta
