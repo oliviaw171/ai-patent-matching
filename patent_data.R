@@ -1,6 +1,12 @@
 # This file loads past data on patent (we aim for cleaning and analyzing data
 # from 2010-2021, but we are including pre-2010 data as well in the first stage)
 
+# Goal: take all patents applications filed at the US Patent and Trademark
+# Office (USPTO) from 2010 to 2023 and match them to private firms
+
+# Data source: USPTO patents 2010-2023
+# Assignee: US private firms
+
 # Load necessary packages
 library(haven)
 library(utils)
@@ -20,3 +26,4 @@ staticTranche5 <- read.csv("compustat-patent/staticTranche5.csv")
 staticTranche6 <- read.csv("compustat-patent/staticTranche6.csv")
 staticTranche7 <- read.csv("compustat-patent/staticTranche7.csv")
 staticTranche8 <- read.csv("compustat-patent/staticTranche8.csv")
+
