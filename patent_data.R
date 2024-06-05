@@ -77,14 +77,10 @@ f_statT8 <- subset(staticTranche8, appYear >= 2010 & appYear <= 2020)
 f_statT_combined <- rbind(f_statT1, f_statT2, f_statT3, f_statT4, 
                           f_statT5, f_statT6, f_statT7, f_statT8)
 
-# Define the file path for the new folder
+# Create patent data folder
 data_folder_path <- "patent-data"
-
-# Create the folder if it doesn't exist
 dir.create(data_folder_path)
 
-# Define the file path for saving the combined dataset
+# Define file path and save the combined dataset to new folder
 data_folder_path <- file.path(data_folder_path, "f_statT_combined.csv")
-
-# Save the combined dataset to the new folder
 write.csv(f_statT_combined, data_folder_path, row.names = FALSE)
