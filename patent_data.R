@@ -20,21 +20,21 @@
 # Assignee: US private firms
 # Variables (i.e., columns in data frames; subject to change): 
 # 1. Patent ID
-# 2. Patent Grant Year
-# 3. gvkey
+# 2. Patent Submission Year (App Year)
+# 3. Patent Grant Year
+# 4. gvkey
 #      concern: does not capture changes over time in ownership structure and
 #      firm names, and the same company may have multiple codes over time
 #      3a) gvkeyUO
 #      3a) gvkeyFR
-# 4. Company/organization assignee name
+# 5. Company/organization assignee name
 #      4a) Raw name
 #      4b) Cleaned name
 
 # To decide yet:
 
-# 5. Private Subsidiary (binary variable)
-# 6. Assignee Address
-# 7. Patent Submission Year (App Year)
+# 6. Private Subsidiary (binary variable)
+# 7. Assignee Address
 # 8. Link Year: Year for which the given (cleaned) firm name is mapped to the
 # given gvkeyFR and (where applicable) given gvkeyUO
 #      8a) cnLink_y1 (first year)
@@ -63,3 +63,28 @@ staticTranche6 <- read.csv("compustat-patent/staticTranche6.csv")
 staticTranche7 <- read.csv("compustat-patent/staticTranche7.csv")
 staticTranche8 <- read.csv("compustat-patent/staticTranche8.csv")
 
+# Filter patents with appYear from 2010 - 2020
+f_statT1 <- subset(staticTranche1, appYear >= 2010 & appYear <= 2020)
+f_statT2 <- subset(staticTranche2, appYear >= 2010 & appYear <= 2020)
+f_statT3 <- subset(staticTranche3, appYear >= 2010 & appYear <= 2020)
+f_statT4 <- subset(staticTranche4, appYear >= 2010 & appYear <= 2020)
+f_statT5 <- subset(staticTranche5, appYear >= 2010 & appYear <= 2020)
+f_statT6 <- subset(staticTranche6, appYear >= 2010 & appYear <= 2020)
+f_statT7 <- subset(staticTranche7, appYear >= 2010 & appYear <= 2020)
+f_statT8 <- subset(staticTranche8, appYear >= 2010 & appYear <= 2020)
+
+# Combine the filtered datasets
+f_statT_combined <- rbind(f_statT1, f_statT2, f_statT3, f_statT4, 
+                          f_statT5, f_statT6, f_statT7, f_statT8)
+
+# Define the file path for the new folder
+data_folder_path <- "patent-data"
+
+# Create the folder if it doesn't exist
+dir.create(data_folder_path)
+
+# Define the file path for saving the combined dataset
+data_folder_path <- file.path(data_folder_path, "f_statT_combined.csv")
+
+# Save the combined dataset to the new folder
+write.csv(f_statT_combined, data_folder_path, row.names = FALSE)
