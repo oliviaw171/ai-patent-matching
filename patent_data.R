@@ -15,6 +15,7 @@
 #   B) Consistency with Independent Variables: 
 # Main independent variable, AI adoption, is likely tied to specific
 # periods
+# Issue: USPTO recorded date
 
 # Data source: USPTO patents 2010-2023
 # Assignee: US private firms
@@ -44,12 +45,19 @@
 # Load necessary packages
 library(haven)
 library(utils)
+library(dplyr)
+library(stringr)
+
+#### #### #### #### ####
 
 # Loading DISCERN data (data format: .dta)
+# Time frame: 1980 - 2015
 discern_database <- read_dta("output_files/DISCERN_patent_database_1980_2015_final1.dta")
 discern_panel <- read_dta("output_files/DISCERN_Panel_Data_1980_2015.dta")
 discern_SUB_name <- read_dta("output_files/DISCERN_SUB_name_list.dta")
 discern_UO_name <- read_dta("output_files/DISCERN_UO_name_list.dta")
+
+#### #### #### #### ####
 
 # Loading compustat-patent data (data format: .csv)
 # Time frame: 1926 - 2020
@@ -76,6 +84,10 @@ f_statT8 <- subset(staticTranche8, appYear >= 2010 & appYear <= 2020)
 # Combine the filtered datasets
 f_statT_combined <- rbind(f_statT1, f_statT2, f_statT3, f_statT4, 
                           f_statT5, f_statT6, f_statT7, f_statT8)
+# 1,043,622 patents (observations) from submission period from 2010 to 2020
+
+remove(f_statT1, f_statT2, f_statT3, f_statT4,f_statT5, f_statT6,
+       f_statT7, f_statT8)
 
 # Create patent data folder
 data_folder_path <- "patent-data"
@@ -84,3 +96,103 @@ dir.create(data_folder_path)
 # Define file path and save the combined dataset to new folder
 data_folder_path <- file.path(data_folder_path, "f_statT_combined.csv")
 write.csv(f_statT_combined, data_folder_path, row.names = FALSE)
+
+#### #### #### #### ####
+
+# Compare DISCERN and compustat-patent data for the overlapping time period -->
+# check and improve accuracy
+
+# DISCERN data do not provide appYear, so we use Grant Year as the variable to
+# frame the compared data
+# Preliminary period: 2005-2015
+
+f_discern <- subset(discern_database, publn_year >= 2005 & publn_year <= 2015)
+# 661,577 observations
+
+f_statT1_comp <- subset(staticTranche1, grantYear >= 2005 & grantYear <= 2015)
+f_statT2_comp <- subset(staticTranche2, grantYear >= 2005 & grantYear <= 2015)
+f_statT3_comp <- subset(staticTranche3, grantYear >= 2005 & grantYear <= 2015)
+f_statT4_comp <- subset(staticTranche4, grantYear >= 2005 & grantYear <= 2015)
+f_statT5_comp <- subset(staticTranche5, grantYear >= 2005 & grantYear <= 2015)
+f_statT6_comp <- subset(staticTranche6, grantYear >= 2005 & grantYear <= 2015)
+f_statT7_comp <- subset(staticTranche7, grantYear >= 2005 & grantYear <= 2015)
+f_statT8_comp <- subset(staticTranche8, grantYear >= 2005 & grantYear <= 2015)
+
+f_statT_compare <- rbind(f_statT1_comp, f_statT2_comp, f_statT3_comp,
+                         f_statT4_comp, f_statT5_comp, f_statT6_comp,
+                         f_statT7_comp, f_statT8_comp)
+# 1,126,479 observations
+
+remove(f_statT1_comp, f_statT2_comp, f_statT3_comp, f_statT4_comp,
+       f_statT5_comp, f_statT6_comp, f_statT7_comp, f_statT8_comp)
+
+# Convert the relevant columns to character to ensure matching works correctly
+f_discern$publn_nr <- as.character(f_discern$publn_nr)
+f_statT_compare$patent_id <- as.character(f_statT_compare$patent_id)
+
+# Check if publn_nr from f_discern exists in patent_id from f_statT_compare
+common_patents_discern <- f_discern$publn_nr %in% f_statT_compare$patent_id
+
+# Create a new column in f_discern to indicate if the patent is in f_statT_compare
+f_discern$in_f_statT_compare <- common_patents_discern
+
+# Check if patent_id from f_statT_compare exists in publn_nr from f_discern
+common_patents_statT_compare <- f_statT_compare$patent_id %in% f_discern$publn_nr
+
+# Create a new column in f_statT_compare to indicate if the patent is in f_discern
+f_statT_compare$in_f_discern <- common_patents_statT_compare
+
+# Count the number of TRUE and FALSE values in both datasets
+true_count_discern <- sum(f_discern$in_f_statT_compare)
+false_count_discern <- sum(!f_discern$in_f_statT_compare)
+true_count_statT_compare <- sum(f_statT_compare$in_f_discern)
+false_count_statT_compare <- sum(!f_statT_compare$in_f_discern)
+
+# 577,283 out of 661,577 patents in DISCERN are present in compustat-patent
+# 577,180 out of 1,126,479 patents in c-p are present in DISCERN
+
+# potential factors that accounts for differences:
+#   static vs dynamic
+
+
+
+#### #### #### #### ####
+
+# Load USPTO raw data
+
+uspto_assignee <- read.csv("USPTO/assignee.csv")
+# real frame id, assignee name, assignee address
+# 10,930,678
+# needs to be linked to date & unique ID, patent
+
+uspto_assignment <- read.csv("USPTO/assignment.csv")
+# record date, rf id, file id
+# 10,531,897
+
+uspto_doc_id <- read.csv("USPTO/documentid.csv")
+# 11,688,561 observations
+
+# Change variable type to date; filter to desired time period
+uspto_doc_id$appno_date <- as.Date(uspto_doc_id$appno_date, format = "%Y-%m-%d")
+typeof(uspto_doc_id$appno_date)
+uspto_doc_id <- uspto_doc_id |>
+  filter(appno_date >= as.Date("2010-01-01") & appno_date <= as.Date("2021-12-31"))
+# 2,686,775 observations
+
+# Remove unnecessary variables
+uspto_doc_id <- uspto_doc_id |>
+  select(-pgpub_doc_num, -pgpub_date, -pgpub_country)
+
+# Filter uspto_assignee and uspto_assignment to keep only rows with rf_id present in uspto_doc_id
+uspto_assignee <- uspto_assignee |>
+  semi_join(uspto_doc_id, by = "rf_id")
+# 2,276,430 observations
+uspto_assignment <- uspto_assignment |>
+  semi_join(uspto_doc_id, by = "rf_id")
+# 2,191,638 observations
+
+
+
+# Figure out solution to uploading more large files
+# Link between patent id, real frame id, file id
+
