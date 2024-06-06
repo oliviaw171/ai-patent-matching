@@ -82,7 +82,7 @@ f_statT7 <- subset(staticTranche7, appYear >= 2010 & appYear <= 2020)
 f_statT8 <- subset(staticTranche8, appYear >= 2010 & appYear <= 2020)
 
 # Combine the filtered datasets
-f_statT_combined <- rbind(f_statT1, f_statT2, f_statT3, f_statT4, 
+f_statT_total <- rbind(f_statT1, f_statT2, f_statT3, f_statT4, 
                           f_statT5, f_statT6, f_statT7, f_statT8)
 # 1,043,622 patents (observations) from submission period from 2010 to 2020
 
@@ -125,6 +125,12 @@ f_statT_compare <- rbind(f_statT1_comp, f_statT2_comp, f_statT3_comp,
 
 remove(f_statT1_comp, f_statT2_comp, f_statT3_comp, f_statT4_comp,
        f_statT5_comp, f_statT6_comp, f_statT7_comp, f_statT8_comp)
+
+remove(staticTranche1, staticTranche2, staticTranche3, staticTranche4,
+       staticTranche5, staticTranche6, staticTranche7, staticTranche8)
+
+remove(f_statT1, f_statT2, f_statT3, f_statT4, f_statT5, f_statT6,
+       f_statT7, f_statT8)
 
 # Convert the relevant columns to character to ensure matching works correctly
 f_discern$publn_nr <- as.character(f_discern$publn_nr)
@@ -191,6 +197,34 @@ uspto_assignment <- uspto_assignment |>
   semi_join(uspto_doc_id, by = "rf_id")
 # 2,191,638 observations
 
+# Save edited datasets locally (then push to github)
+
+write.csv(uspto_doc_id, "uspto_doc_id_cleaned.csv", row.names = FALSE)
+write.csv(uspto_assignee, "uspto_assignee_cleaned.csv", row.names = FALSE)
+write.csv(uspto_assignment, "uspto_assignment_cleaned.csv", row.names = FALSE)
+
+
+####
+
+# Standardize the assignee names
+standardize_name <- function(name) {
+  # Convert to lowercase
+  name <- tolower(name)
+  
+  # Remove punctuation and special characters
+  name <- str_replace_all(name, "[[:punct:]]", "")
+  
+  # Remove common company suffixes
+  name <- str_replace_all(name, "\\b(co|ltd|corp|inc)\\b", "")
+
+  # Trim leading and trailing whitespace
+  name <- str_trim(name)
+  
+  return(name)
+}
+
+# Apply the standardization function to the ee_name column
+uspto_assignee$ee_name <- sapply(uspto_assignee$ee_name, standardize_name)
 
 
 # Figure out solution to uploading more large files
