@@ -94,8 +94,8 @@ data_folder_path <- "patent-data"
 dir.create(data_folder_path)
 
 # Define file path and save the combined dataset to new folder
-data_folder_path <- file.path(data_folder_path, "f_statT_combined.csv")
-write.csv(f_statT_combined, data_folder_path, row.names = FALSE)
+data_folder_path <- file.path(data_folder_path, "f_statT_total")
+write.csv(f_statT_total, data_folder_path, row.names = FALSE)
 
 #### #### #### #### ####
 
@@ -129,8 +129,8 @@ remove(f_statT1_comp, f_statT2_comp, f_statT3_comp, f_statT4_comp,
 remove(staticTranche1, staticTranche2, staticTranche3, staticTranche4,
        staticTranche5, staticTranche6, staticTranche7, staticTranche8)
 
-remove(f_statT1, f_statT2, f_statT3, f_statT4, f_statT5, f_statT6,
-       f_statT7, f_statT8)
+# remove(f_statT1, f_statT2, f_statT3, f_statT4, f_statT5, f_statT6,
+#        f_statT7, f_statT8)
 
 # Convert the relevant columns to character to ensure matching works correctly
 f_discern$publn_nr <- as.character(f_discern$publn_nr)
@@ -198,11 +198,11 @@ uspto_assignment <- uspto_assignment |>
 # 2,191,638 observations
 
 # Save edited datasets locally (then push to github)
+dir.create("uspto-clean")
 
-write.csv(uspto_doc_id, "uspto_doc_id_cleaned.csv", row.names = FALSE)
-write.csv(uspto_assignee, "uspto_assignee_cleaned.csv", row.names = FALSE)
-write.csv(uspto_assignment, "uspto_assignment_cleaned.csv", row.names = FALSE)
-
+write.csv(uspto_doc_id, file = "uspto-clean/uspto_doc_id_cleaned.csv", row.names = FALSE)
+write.csv(uspto_assignee, file = "uspto-clean/uspto_assignee_cleaned.csv", row.names = FALSE)
+write.csv(uspto_assignment, file = "uspto-clean/uspto_assignment_cleaned.csv", row.names = FALSE)
 
 ####
 
@@ -212,19 +212,29 @@ standardize_name <- function(name) {
   name <- tolower(name)
   
   # Remove punctuation and special characters
-  name <- str_replace_all(name, "[[:punct:]]", "")
+  name <- gsub("[[:punct:]]", "", name)
   
   # Remove common company suffixes
-  name <- str_replace_all(name, "\\b(co|ltd|corp|inc)\\b", "")
-
+  name <- gsub("\\b(co|ltd|corp|inc)\\b", "", name, ignore.case = TRUE)
+  
   # Trim leading and trailing whitespace
-  name <- str_trim(name)
+  name <- trimws(name)
   
   return(name)
 }
 
 # Apply the standardization function to the ee_name column
-uspto_assignee$ee_name <- sapply(uspto_assignee$ee_name, standardize_name)
+uspto_assignee$ee_name <- standardize_name(uspto_assignee$ee_name)
+
+# Add a binary column indicating duplicate entries in ee_name
+uspto_assignee$has_duplicate <- duplicated(uspto_assignee$ee_name) | duplicated(uspto_assignee$ee_name, fromLast = TRUE)
+
+# Count the number of entries with duplicates
+num_duplicates <- sum(uspto_assignee$has_duplicate)
+
+# Print the number of entries with duplicates
+print(paste("Number of entries with duplicates:", num_duplicates))
+
 
 
 # Figure out solution to uploading more large files
