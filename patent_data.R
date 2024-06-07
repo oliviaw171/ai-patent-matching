@@ -197,13 +197,6 @@ uspto_assignment <- uspto_assignment |>
   semi_join(uspto_doc_id, by = "rf_id")
 # 2,191,638 observations
 
-# Save edited datasets locally (then push to github)
-dir.create("uspto-clean")
-
-write.csv(uspto_doc_id, file = "uspto-clean/uspto_doc_id_cleaned.csv", row.names = FALSE)
-write.csv(uspto_assignee, file = "uspto-clean/uspto_assignee_cleaned.csv", row.names = FALSE)
-write.csv(uspto_assignment, file = "uspto-clean/uspto_assignment_cleaned.csv", row.names = FALSE)
-
 ####
 
 # Standardize the assignee names
@@ -242,6 +235,14 @@ duplicate_uspto_pat <- duplicated(uspto_assignee$ee_name) | duplicated(uspto_ass
 uspto_cb_assignee <- uspto_assignee %>%
   group_by(ee_name, ee_address_1, ee_address_2, ee_city, ee_state, ee_postcode, ee_country) %>%
   summarise(rf_id_combined = if_else(all(has_duplicate), paste(rf_id, collapse = ", "), as.character(rf_id[1])))
+
+# Save edited datasets locally (then push to github)
+dir.create("uspto-clean")
+
+write.csv(uspto_doc_id, file = "uspto-clean/uspto_doc_id_cleaned.csv", row.names = FALSE)
+write.csv(uspto_assignee, file = "uspto-clean/uspto_assignee_cleaned.csv", row.names = FALSE)
+write.csv(uspto_assignment, file = "uspto-clean/uspto_assignment_cleaned.csv", row.names = FALSE)
+write.csv(uspto_cb_assignee, file = "uspto-clean/uspto_cb_assignee_cleaned.csv", row.names = FALSE)
 
 
 
