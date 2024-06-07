@@ -167,7 +167,7 @@ false_count_statT_compare <- sum(!f_statT_compare$in_f_discern)
 # Load USPTO raw data
 
 uspto_assignee <- read.csv("USPTO/assignee.csv")
-# real frame id, assignee name, assignee address
+# reel frame id, assignee name, assignee address
 # 10,930,678
 # needs to be linked to date & unique ID, patent
 
@@ -230,13 +230,21 @@ uspto_assignee$ee_name <- standardize_name(uspto_assignee$ee_name)
 uspto_assignee$has_duplicate <- duplicated(uspto_assignee$ee_name) | duplicated(uspto_assignee$ee_name, fromLast = TRUE)
 
 # Count the number of entries with duplicates
-num_duplicates <- sum(uspto_assignee$has_duplicate)
+sum(uspto_assignee$has_duplicate)
 
-# Print the number of entries with duplicates
-print(paste("Number of entries with duplicates:", num_duplicates))
+# 2,139,990 before standardizing names, 2,158,103 after standardizing names
+
+####
+
+# Identify duplicate observations
+duplicate_uspto_pat <- duplicated(uspto_assignee$ee_name) | duplicated(uspto_assignee$ee_name, fromLast = TRUE)
+
+uspto_cb_assignee <- uspto_assignee %>%
+  group_by(ee_name, ee_address_1, ee_address_2, ee_city, ee_state, ee_postcode, ee_country) %>%
+  summarise(rf_id_combined = if_else(all(has_duplicate), paste(rf_id, collapse = ", "), as.character(rf_id[1])))
 
 
 
 # Figure out solution to uploading more large files
-# Link between patent id, real frame id, file id
+# Link between patent id, reel frame id, file id
 
