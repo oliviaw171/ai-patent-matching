@@ -182,7 +182,7 @@ uspto_doc_id <- read.csv("USPTO/documentid.csv")
 uspto_doc_id$appno_date <- as.Date(uspto_doc_id$appno_date, format = "%Y-%m-%d")
 typeof(uspto_doc_id$appno_date)
 uspto_doc_id <- uspto_doc_id |>
-  filter(appno_date >= as.Date("2010-01-01") & appno_date <= as.Date("2021-12-31"))
+  filter(appno_date >= as.Date("2010-01-01") & appno_date <= as.Date("2024-12-31"))
 # 2,686,775 observations
 
 # Remove unnecessary variables
@@ -225,7 +225,7 @@ uspto_assignee$has_duplicate <- duplicated(uspto_assignee$ee_name) | duplicated(
 # Count the number of entries with duplicates
 sum(uspto_assignee$has_duplicate)
 
-# 2,139,990 before standardizing names, 2,158,103 after standardizing names
+# 2,139,990 before standardizing names, 2,158,107 after standardizing names
 
 ####
 
