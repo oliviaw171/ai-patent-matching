@@ -233,8 +233,8 @@ sum(uspto_assignee$has_duplicate)
 # Identify duplicate observations
 duplicate_uspto_pat <- duplicated(uspto_assignee$ee_name) | duplicated(uspto_assignee$ee_name, fromLast = TRUE)
 
-uspto_cb_assignee <- uspto_assignee %>%
-  group_by(ee_name, ee_address_1, ee_address_2, ee_city, ee_state, ee_postcode, ee_country) %>%
+uspto_cb_assignee <- uspto_assignee |>
+  group_by(ee_name, ee_address_1, ee_address_2, ee_city, ee_state, ee_postcode, ee_country) |>
   summarise(rf_id_combined = if_else(all(has_duplicate), paste(rf_id, collapse = ", "), as.character(rf_id[1])))
 
 # Save edited datasets locally (then push to github)
@@ -280,7 +280,15 @@ uspto_cb_assignee <- subset(uspto_cb_assignee, select = -c(ee_address_1, ee_addr
 # }
 
 # Group rows by ee_name and ee_address, then combine rf_id_combined values
-uspto_cb_assignee <- uspto_cb_assignee %>%
-  group_by(ee_name, ee_address) %>%
-  summarize(rf_id_combined = toString(rf_id_combined)) %>%
+uspto_cb_assignee <- uspto_cb_assignee |>
+  group_by(ee_name, ee_address) |>
+  summarize(rf_id_combined = toString(rf_id_combined)) |>
   ungroup()
+
+# Unify cases
+uspto_cb_assignee$ee_address <- tolower(uspto_cb_assignee$ee_address)
+
+
+
+
+
