@@ -47,6 +47,7 @@ library(haven)
 library(utils)
 library(dplyr)
 library(stringr)
+library(tidyr)
 
 #### #### #### #### ####
 
@@ -244,8 +245,42 @@ write.csv(uspto_assignee, file = "uspto-clean/uspto_assignee_cleaned.csv", row.n
 write.csv(uspto_assignment, file = "uspto-clean/uspto_assignment_cleaned.csv", row.names = FALSE)
 write.csv(uspto_cb_assignee, file = "uspto-clean/uspto_cb_assignee_cleaned.csv", row.names = FALSE)
 
-
-
 # Figure out solution to uploading more large files
 # Link between patent id, reel frame id, file id
 
+####
+
+# Combine address-related columns into a single variable
+uspto_cb_assignee <- tidyr::unite(uspto_cb_assignee, 
+            col = "ee_address", 
+            ee_address_1, ee_address_2, ee_city, ee_state, ee_postcode, ee_country, 
+            sep = ", ", 
+            remove = FALSE)
+
+# Clean and standardize the ee_address variable by removing punctuation
+uspto_cb_assignee$ee_address <- gsub("[[:punct:]]", "", uspto_cb_assignee$ee_address)
+
+# Remove extra spaces from ee_address
+uspto_cb_assignee$ee_address <- gsub("\\s+", " ", uspto_cb_assignee$ee_address)
+
+# Remove unnecessary columns from the dataframe
+uspto_cb_assignee <- subset(uspto_cb_assignee, select = -c(ee_address_1, ee_address_2, ee_city, ee_state, ee_postcode, ee_country))
+
+# Loop through each row and compare with the previous row (speed too slow)
+# for (i in 2:nrow(uspto_cb_assignee)) {
+#  if (uspto_cb_assignee[i, "ee_name"] == uspto_cb_assignee[i - 1, "ee_name"] &&
+#      uspto_cb_assignee[i, "ee_address"] == uspto_cb_assignee[i - 1, "ee_address"]) {
+#    # Combine the rf_id_combined values into one string
+#    uspto_cb_assignee[i, "rf_id_combined"] <- paste(uspto_cb_assignee[i - 1, "rf_id_combined"], uspto_cb_assignee[i, "rf_id_combined"], sep = ", ")
+#    # Remove the previous row
+#    uspto_cb_assignee <- uspto_cb_assignee[-(i - 1), ]
+#    # Decrement the loop index to adjust for the removed row
+#    i <- i - 1
+#  }
+# }
+
+# Group rows by ee_name and ee_address, then combine rf_id_combined values
+uspto_cb_assignee <- uspto_cb_assignee %>%
+  group_by(ee_name, ee_address) %>%
+  summarize(rf_id_combined = toString(rf_id_combined)) %>%
+  ungroup()
