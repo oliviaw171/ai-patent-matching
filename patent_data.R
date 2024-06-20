@@ -48,6 +48,8 @@ library(utils)
 library(dplyr)
 library(stringr)
 library(tidyr)
+library(stringdist)
+library(data.table)
 
 #### #### #### #### ####
 
@@ -289,6 +291,70 @@ uspto_cb_assignee <- uspto_cb_assignee |>
 uspto_cb_assignee$ee_address <- tolower(uspto_cb_assignee$ee_address)
 
 
+#### #### Use address to compare and combine assignees
 
+# Convert data.frame to data.table
+setDT(uspto_cb_assignee)
 
+# Function to calculate similarity ratio of two strings
+text_similarity_ratio <- function(str1, str2) {
+  if (is.na(str1) || is.na(str2)) return(0)
+  
+  # Calculate similarity using stringdist package
+  dist <- stringdist::stringdist(str1, str2, method = "jaccard")
+  sim_ratio <- 1 - dist
+  return(sim_ratio)
+}
+
+# Function to process the data table and update based on similarity
+process_data <- function(dt) {
+  dt_summary <- dt %>%
+    group_by(ee_name) %>%
+    summarize(
+      ee_address = max(na.omit(ee_address), na.rm = TRUE),
+      rf_id_combined = paste(unique(unlist(strsplit(na.omit(rf_id_combined), ",\\s*"))), collapse = ", ")
+    ) %>%
+    ungroup()
+  
+  # Initialize a list to store processed results
+  merged_results <- list()
+  
+  # Process each unique ee_name group
+  for (ee_name in unique(dt_summary$ee_name)) {
+    subset_dt <- dt_summary[ee_name == ee_name, ]  # Subset for current ee_name group
+    
+    # Compare pairwise ee_address values
+    for (i in 1:(nrow(subset_dt) - 1)) {
+      for (j in (i + 1):nrow(subset_dt)) {
+        sim <- text_similarity_ratio(subset_dt$ee_address[i], subset_dt$ee_address[j])
+        if (sim >= 0.7) {
+          # Combine rf_id_combined for similar addresses
+          subset_dt[i, "rf_id_combined"] <- paste(subset_dt$rf_id_combined[i], subset_dt$rf_id_combined[j], sep = ", ")
+          subset_dt[j, "rf_id_combined"] <- NA  # Remove duplicate rf_id_combined
+        }
+      }
+    }
+    
+    # Remove NAs in rf_id_combined column
+    subset_dt <- subset_dt %>%
+      na.omit("rf_id_combined")
+    
+    # Add processed subset to merged results
+    merged_results[[ee_name]] <- subset_dt
+  }
+  
+  # Combine all processed results
+  updated_dt <- rbindlist(merged_results)
+  
+  return(updated_dt)
+}
+
+# Process the data table
+updated_dt <- process_data(uspto_cb_assignee)
+
+# Convert back to data.frame if needed
+updated_df <- as.data.frame(updated_dt)
+
+# Display the updated data frame
+print(updated_df)
 
