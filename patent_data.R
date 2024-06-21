@@ -366,5 +366,23 @@ write.csv(updated_df, file = output_file_path, row.names = FALSE)
 # Confirm that the file has been saved
 cat("The file has been saved to", output_file_path)
 
+####
 
+# Convert data.frame to data.table if not already done
+setDT(updated_df)
+setDT(uspto_cb_assignee)
 
+# Select the first occurrence of each ee_name in uspto_cb_assignee
+uspto_cb_assignee_unique <- uspto_cb_assignee[, .SD[1], by = ee_name]
+
+# Merge updated_df with the unique entries of uspto_cb_assignee to add ee_address
+uspto_updated_assignee <- merge(updated_df, uspto_cb_assignee_unique[, .(ee_name, ee_address)], 
+                                by = "ee_name", all.x = TRUE)
+
+# Save the resulting data frame to a CSV file
+output_file_path <- "uspto_updated_assignee.csv"
+write.csv(uspto_updated_assignee, file = output_file_path, row.names = FALSE)
+
+cat("The file has been saved to", output_file_path)
+
+remove(updated_dt, updated_df, uspto_cb_assignee_unique, uspto_cb_assignee)
