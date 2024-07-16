@@ -60,8 +60,8 @@ log_time_used <- function(t1, task, log_file, mode = 'a') {
 t_start <- Sys.time()
 t1 <- Sys.time()
 
-# Load names from pickle file (assuming it's in RDS format)
-list_name <- readRDS("sdc_compustat_patentsview_name.rds")
+# Load names from cleaned csv file
+list_name <- read.csv("uspto_updated_assignee.csv")
 
 # Take task number from command line argument
 task_num <- as.integer(commandArgs(trailingOnly = TRUE)[1])
